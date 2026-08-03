@@ -8,7 +8,7 @@ name: 🏭 Pi Software Factory — Context Generator
 #   2. Deze workflow genereert .pi-factory/<issue-num>.md
 #   3. Commit + push naar een feature branch
 #   4. Post comment op issue met instructie voor Codespace
-#   5. Gebruiker draait Pi in Codespace met dat context bestand
+#   5. Gebruiker draait Pi in Codespace met dat context bestand + Matt Pocock skills
 #   6. Pi implementeert → commit → push
 #   7. Vercel preview deployt automatisch
 
@@ -49,7 +49,7 @@ jobs:
           mkdir -p .pi-factory
 
           cat > .pi-factory/${{ steps.issue.outputs.number }}.md << 'CTX'
-          # Pi Software Factory — Context
+          # Pi Software Factory — Implementatie Context
 
           ## Opdracht
           Issue: #${{ steps.issue.outputs.number }}
@@ -59,6 +59,27 @@ jobs:
 
           ## User Story & Acceptance Criteria
           ${{ steps.issue.outputs.body }}
+
+          ---
+
+          ## Hoe te implementeren (werkwijze)
+
+          Je hebt toegang tot Matt Pocock's skills. Gebruik deze strategie:
+
+          1. **Begrijp het probleem eerst** — lees de user story + acceptance criteria volledig
+          2. **Bekijk de huidige codebase** — check wat er al bestaat (`read` relevante files)
+          3. **Maak een plan** — beschrijf kort wat je gaat bouwen voor je begint
+          4. **Implementeer iteratief** — kleine stappen, testbaar na elke stap
+          5. **TypeScript strict** — geen `any`, geen type errors
+          6. **Test via build** — `npm run build` en `npx tsc --noEmit` moeten slagen
+
+          ### Matt Pocock skills die je kan inzetten
+
+          Voor deze implementatie, overweeg Matt's werkwijze:
+          - `/skill:implement` — Matt's implementatie protocol (aanbevolen als beschikbaar)
+          - `/skill:tdd` — als de feature complexe logica heeft, schrijf tests eerst
+          - `/skill:code-review` — na implementatie, review je eigen code kritisch
+          - `/skill:to-spec` — als de acceptance criteria vaag zijn, break ze eerst naar specs
 
           ---
 
@@ -80,26 +101,28 @@ jobs:
           7. Geen secrets in client-side code.
 
           ## File Conventies
-          - Routes: src/app/<route>/page.tsx
-          - Layouts: src/app/<route>/layout.tsx
-          - Server Actions: src/app/<route>/actions.ts
-          - UI components: src/components/
-          - Lib/utilities: src/lib/
-          - PostHog client: src/lib/posthog/client.ts
-          - PostHog server: src/lib/posthog/server.ts
-          - Supabase client: src/lib/supabase/client.ts
-          - Supabase server: src/lib/supabase/server.ts
-          - Config: src/lib/config.ts (o/p environment switching)
+          - Routes: `src/app/<route>/page.tsx`
+          - Layouts: `src/app/<route>/layout.tsx`
+          - Server Actions: `src/app/<route>/actions.ts`
+          - UI components: `src/components/`
+          - Lib/utilities: `src/lib/`
+          - PostHog client: `src/lib/posthog/client.ts`
+          - PostHog server: `src/lib/posthog/server.ts`
+          - Supabase client: `src/lib/supabase/client.ts`
+          - Supabase server: `src/lib/supabase/server.ts`
+          - Config: `src/lib/config.ts` (o/p environment switching)
 
           ## Environment Awareness
           De app draait in drie modi:
-          - development (lokaal)
-          - preview (Vercel PR deploy — o)
-          - production (Vercel main deploy — p)
+          - `development` (lokaal)
+          - `preview` (Vercel PR deploy — o)
+          - `production` (Vercel main deploy — p)
+
           Gebruik `src/lib/config.ts` voor environment switching.
           PostHog events moeten `environment` property bevatten.
 
           ## PostHog Tracking Checklist
+          Implementeer tracking voor elke nieuwe feature:
           - [ ] Client-side: `getPostHogClient().capture("event_name", { ...getPostHogProperties() })`
           - [ ] Server-side: `getPostHogServer().capture({ distinctId: user.id, event: "...", properties: { ...getPostHogProperties() } })`
           - [ ] `$pageview` wordt al automatisch getracked via PostHogProvider
@@ -113,8 +136,8 @@ jobs:
           1. Implementeer de feature volgens acceptance criteria
           2. Zorg dat `npm run build` slaagt zonder errors
           3. Zorg dat `npx tsc --noEmit` slaagt
-          4. Update TESTPLAN.md in de PR met wat te testen
-          5. Commit met message: "🏭 [PI-#${{ steps.issue.outputs.number }}] ${{ steps.issue.outputs.title }}"
+          4. Gebruik Matt's code-review werkwijze op je eigen output
+          5. Commit met message: `🏭 [PI-#${{ steps.issue.outputs.number }}] ${{ steps.issue.outputs.title }}`
 
           ## Wat NIET te doen
           - Geen nieuwe frameworks toevoegen (geen Redux, Zustand, etc.)
@@ -154,34 +177,42 @@ jobs:
             ### Stap 1: Open je Codespace
             Zorg dat je Codespace draait op de branch \`${branch}\`.
 
-            ### Stap 2: Run Pi met context
+            \`\`\`bash
+            git fetch
+git checkout ${branch}
+            \`\`\`
+
+            ### Stap 2: Run Pi met context + Matt Pocock skills
+
+            **Optie A — direct met system prompt:**
             \`\`\`bash
             pi --system-prompt .pi-factory/${issueNumber}.md
+            # Prompt binnen Pi: /skill:implement (als je Matt's skills hebt)
             \`\`\`
 
-            Of als je in een sessie zit:
+            **Optie B — binnen bestaande sessie:**
             \`\`\`
             /reload
-            # Dan prompt met: implementeer issue #${issueNumber}
+            # Pi laadt automatisch de factory-helper extension
+            # Run /factory om context te laden
+            # Prompt: implementeer issue ${issueNumber}
             \`\`\`
 
-            ### Stap 3: Commit & Push
-            \`\`\`bash
-            git add -A
-            git commit -m "🏭 [PI-${issueNumber}] Implementatie"
-            git push origin ${branch}
+            ### Stap 3: Commit & Push via Pi commands
             \`\`\`
+            /done
+            \`\`\`
+            (Dit doet automatisch: git add -A → commit → TESTPLAN.md genereren → push)
 
             ### Stap 4: Maak Pull Request
             Ga naar GitHub en maak een PR van \`${branch}\` → \`main\`.
             Vercel maakt automatisch een **preview deploy**.
 
-            ### Wat Pi voor je doet
-            - Leest de user story en acceptance criteria
-            - Implementeert binnen de tech stack (Next.js, Supabase, PostHog)
-            - Volgt file conventies en architectuur principes
-            - Zorgt voor PostHog tracking en RLS policies
-            - Genereert een TESTPLAN.md
+            ### Matt Pocock skills die je kan gebruiken
+            - \`/skill:implement\` — Matt's implementatie protocol (aanbevolen)
+            - \`/skill:tdd\` — als de feature complexe logica heeft
+            - \`/skill:code-review\` — review je eigen output
+            - \`/skill:to-spec\` — als de acceptance criteria vaag zijn
 
             ---
             *Dit comment is automatisch gegenereerd door de Pi Software Factory.*`;

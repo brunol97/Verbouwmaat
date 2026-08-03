@@ -1,16 +1,16 @@
-# 🏭 Pi Software Factory
+# 🏭 Pi Software Factory — Codespaces Native
 
-> **Codespaces-native.** Pi draait in jouw Codespace, GitHub Actions doet alleen het papierwerk.
+> **Met Matt Pocock skills integratie.** Pi draait in jouw Codespace, GitHub Actions doet het papierwerk, en Matt's werkwijze zorgt voor kwaliteit.
 
 ## Concept
 
 1. **Jij maakt een GitHub Issue** aan met het `pi-implement` label
-2. **GitHub Action** genereert een context bestand (`.pi-factory/<nummer>.md`) en post instructies
+2. **GitHub Action** genereert een context bestand (`.pi-factory/<nummer>.md`)
 3. **Jij draait Pi** in je Codespace met dat context bestand
-4. **Pi implementeert** de feature binnen de tech stack
-5. **Jij commit + push** (of gebruik `/commit` / `/done` commands)
-6. **Vercel preview** deployt automatisch de branch
-7. **Pull Request** → review → merge → productie deploy
+4. **Pi implementeert** de feature — met Matt Pocock's protocol als leidraad
+5. **Jij commit + push** (via `/done` of handmatig)
+6. **Vercel preview** deployt automatisch
+7. **Pull Request** → review (optioneel met `/review` + Matt's code-review) → merge → productie
 
 ## Diagram
 
@@ -19,71 +19,90 @@ Jij maakt Issue (template + label: pi-implement)
         │
         ▼
 GitHub Action: pi-factory.yml
-   ├─ Genereert .pi-factory/123.md
+   ├─ Genereert .pi-factory/123.md (incl. Matt skill hints)
    ├─ Maakt feature branch
    ├─ Commit + push context
    └─ Post comment op issue met instructie
         │
         ▼
-Jij opent Codespace (of lokaal)
-   ├─ Pi extension "factory-helper" detecteert context
-   ├─ Notificatie: "🏭 Factory context gevonden"
-   └─ Run: pi --system-prompt .pi-factory/123.md
+Jij in Codespace:
+   git checkout pi-factory/123-...
+   pi --system-prompt .pi-factory/123.md
         │
         ▼
-Pi implementeert feature
-   ├─ Leest user story + acceptance criteria
-   ├─ Codeert binnen Next.js/Supabase/PostHog stack
-   ├─ Volgt architectuur principes
-   └─ Gebruikt bash/write/edit tools
+Pi implementeert met Matt's werkwijze:
+   ├─ /skill:implement (Matt's protocol)
+   ├─ Begrijp → Verken → Plan → Bouw → Test → Review
+   └─ Of gebruik /skill:tdd voor complexe logica
         │
         ▼
-Jij runt /commit of /done in Pi
-   ├─ /commit → git add -A → commit → push
-   ├─ /done   → commit + TESTPLAN.md + push
-   └─ Of handmatig: git add -A && git commit -m "..." && git push
+Jij runt /done in Pi
+   ├─ git add -A
+   ├─ Commit + TESTPLAN.md
+   └─ Push
         │
         ▼
 Vercel Preview Deploy (o)
-   └─ URL verschijnt automatisch in PR
         │
         ▼
-Pull Request → Review → Merge naar main
+PR maken → optioneel: /review (Matt code-review)
         │
         ▼
-Vercel Productie Deploy (p)
-   └─ Notificatie via Slack/Discord (optioneel)
+Merge naar main → Vercel Productie Deploy (p)
+        │
+        ▼
+Notificatie (Slack/Discord — optioneel)
 ```
 
-## Waarom Codespaces?
+## Matt Pocock Skills Integratie
 
-| Aspect | GitHub Actions CI | Codespace (huidig) |
-|--------|-------------------|--------------------|
-| Pi draait in | Container zonder TUI | Jouw ontwikkelomgeving |
-| Tools beschikbaar | Beperkt | Alle tools (bash, write, edit, read) |
-| Interactie | Batch / headless | Interactief, iteratief |
-| Iteraties | 1 run = 1 kans | Jij kan sturen, corrigeren |
-| Feedback loop | Minuten | Seconden |
-| Kwaliteit | Gemiddeld | Hoog (jij bent erbij) |
+Je hebt Matt Pocock's skills geïnstalleerd (`skills add mattpocock/skills`). Deze zijn prompt templates die Pi's werkwijze structureren. De factory integreert ze op drie niveaus:
 
-## Hoe gebruik je het
+### 1. In de gegenereerde context (automatisch)
+Elk `.pi-factory/<issue>.md` bevat:
+```markdown
+## Matt Pocock skills die je kan inzetten
+- `/skill:implement` — Matt's implementatie protocol (aanbevolen)
+- `/skill:tdd` — als de feature complexe logica heeft
+- `/skill:code-review` — na implementatie, review je eigen code
+- `/skill:to-spec` — als de acceptance criteria vaag zijn
+```
+
+### 2. Project-local factory skills (`.pi/skills/`)
+We hebben twee skills aangemaakt die Matt's werkwijze combineren met onze tech stack:
+
+| Skill | Bestand | Wanneer te gebruiken |
+|-------|---------|---------------------|
+| **factory-implement** | `.pi/skills/factory-implement.md` | Standaard protocol voor elke feature. Combinatie van Matt's implement + onze stack regels. |
+| **factory-review** | `.pi/skills/factory-review.md` | Review template met stack-specifieke anti-patterns. |
+
+### 3. Factory-helper extension commands
+De Pi extensie `.pi/extensions/factory-helper.ts` registreert:
+
+| Command | Wat | Matt skill |
+|---------|-----|------------|
+| `/factory` | Toont alle klaarstaande issues | — |
+| `/implement` | Laadt context + suggestie voor `/skill:implement` | `implement` |
+| `/commit` | Snelle git commit + push | — |
+| `/done` | Commit + TESTPLAN.md + push (klaar voor PR) | — |
+| `/review` | Review je eigen code met diff + review template | `code-review` |
+
+## Stap-voor-stap handleiding
 
 ### 1. Een feature aanvragen
 
 - Ga naar **Issues → New Issue → Pi User Story**
 - Vul de template in: User Story, Acceptance Criteria, extra context
-- Label `pi-implement` staat al standaard aan → triggerd de factory
+- Label `pi-implement` staat al standaard → triggerd de factory
 
-### 2. Wacht op context (30 seconden)
+### 2. Wacht op context (~30s)
 
 De Action maakt:
-- Een feature branch: `pi-factory/123-titel-van-issue`
-- Een context bestand: `.pi-factory/123.md`
-- Een comment op je issue met instructies
+- Feature branch: `pi-factory/123-titel-van-issue`
+- Context bestand: `.pi-factory/123.md` (met Matt skill hints)
+- Comment op issue met instructies
 
 ### 3. Open Codespace en start Pi
-
-In je Codespace terminal:
 
 ```bash
 # Zorg dat je op de juiste branch zit
@@ -94,29 +113,30 @@ git checkout pi-factory/123-titel-van-issue
 pi --system-prompt .pi-factory/123.md
 ```
 
-Of, als je al in een Pi sessie zit:
+Binnen Pi:
 ```
-/reload
-# Pi laadt automatisch de project-local factory-helper extension
-# Die toont: "🏭 Factory context gevonden: #123"
-# Prompt met: implementeer issue 123
+# Optie A — gebruik Matt's implement skill (aanbevolen)
+/skill:implement
+# Daarna: implementeer issue 123
+
+# Optie B — direct implementeren
+implementeer issue 123 volgens de geladen context
 ```
 
-### 4. Pi implementeert
+### 4. Pi implementeert met Matt's werkwijze
 
 Pi krijgt nu:
-- De volledige user story en acceptance criteria
+- De volledige user story + acceptance criteria
+- **Matt's implementatie protocol**: Begrijp → Verken → Plan → Bouw → Test → Review
 - Strict tech stack regels (Next.js, Supabase, PostHog)
-- Architectuur principes (Server Components, RLS, tracking)
+- TypeScript strict mode requirements
 - File conventies en environment awareness
-- PostHog en Supabase checklists
 
-Pi gebruikt `write`, `edit`, `bash` om de feature te bouwen.
+Pi vraagt expliciet om goedkeuring voor het plan voordat het begint (Matt's werkwijze).
 
 ### 5. Commit en push via Pi commands
 
 Binnen je Pi sessie:
-
 ```
 /done
 ```
@@ -127,20 +147,32 @@ Dit doet automatisch:
 - Genereert `TESTPLAN.md`
 - `git push origin pi-factory/123-titel-van-issue`
 
-Of handmatig:
-```bash
-git add -A
-git commit -m "🏭 [PI-123] Titel van issue"
-git push
+Of stap-voor-stap:
+```
+/commit  # commit + push
+/review  # optioneel: review je eigen code met Matt's werkwijze
 ```
 
-### 6. Pull Request maken
+### 6. Pull Request + optionele review
 
 Ga naar GitHub en maak een PR van `pi-factory/123-...` → `main`.
 
 - Vercel deployt automatisch een preview
-- De `pr-testplan.yml` Action post een test checklist comment
-- Review, test op preview URL, merge
+- De `pr-testplan.yml` Action post een test checklist
+- **Optioneel:** voor je merge, run in je Codespace:
+  ```
+  git checkout main
+git pull
+  git checkout pi-factory/123-...
+  pi --system-prompt .pi/skills/factory-review.md
+  /review
+  # Review de PR diff met Matt's code-review checklist
+  ```
+
+### 7. Merge en deploy
+
+- Merge PR → `main` → Vercel productie deploy
+- PostHog events komen binnen in productie
 
 ---
 
@@ -153,11 +185,6 @@ Ga naar GitHub en maak een PR van `pi-factory/123-...` → `main`.
 | **Preview (o)** | PR / niet-main | `*.vercel.app` (uniek per deploy) | Preview variables |
 | **Productie (p)** | `main` | Custom domain of `*.vercel.app` | Production variables |
 
-**Instellen in Vercel Dashboard:**
-- Project → Settings → Environment Variables
-- Zet dev Supabase keys onder **Preview**
-- Zet prod Supabase keys onder **Production**
-
 ### Supabase (gratis)
 
 | Omgeving | Project | Hoe aanmaken |
@@ -165,50 +192,25 @@ Ga naar GitHub en maak een PR van `pi-factory/123-...` → `main`.
 | **Preview (o)** | `jouwapp-dev` | Nieuw project in Supabase dashboard |
 | **Productie (p)** | `jouwapp-prod` | Nieuw project in Supabase dashboard |
 
-⚠️ **Free tier:** 500MB per project. Twee projecten = 2 × 500MB = 1GB totaal. Beide gratis.
+**Free tier:** 500MB per project. Twee projecten = 1GB totaal. Beide gratis.
 
 De app switcht automatisch via `src/lib/config.ts` op basis van `VERCEL_ENV`.
 
 ### PostHog (gratis)
 
-| Omgeving | Aanpak |
-|----------|--------|
-| **Alles** | Één project, `environment` property in events |
-
-Filter in PostHog dashboards op:
-- `properties.environment = "preview"` (o)
-- `properties.environment = "production"` (p)
+Één project. Filter op `environment` property:
+- `environment: "preview"` (o)
+- `environment: "production"` (p)
 
 ---
 
-## Factory Commands (Pi extensie)
+## Configuratie Checklist
 
-De project-local extensie `.pi/extensions/factory-helper.ts` registreert:
-
-| Command | Wat het doet |
-|---------|-------------|
-| `/factory` | Toont alle klaarstaande `.pi-factory/*.md` context bestanden. Laadt geselecteerde in editor. |
-| `/commit` | `git add -A` → commit met message → push naar huidige branch. Handig na Pi implementatie. |
-| `/done` | Commit + genereert `TESTPLAN.md` + push. Klaar voor PR. |
-
-De extensie laadt automatisch bij session start en toont een widget als er factory contexts klaar staan.
-
----
-
-## Secrets & Configuratie
-
-### GitHub Secrets (optioneel — alleen voor deploy notificaties)
-
-Ga naar **Settings → Secrets and variables → Actions**:
-
-| Secret | Waarde | Voor |
-|--------|--------|------|
-| `SUPABASE_URL_PROD` | Prod Supabase URL | Productie builds |
-| `SUPABASE_ANON_KEY_PROD` | Prod anon key | Productie builds |
-| `SLACK_WEBHOOK_URL` | Slack incoming webhook | Deploy notificaties |
-| `DISCORD_WEBHOOK_URL` | Discord webhook URL | Deploy notificaties |
-
-> **AI API keys zijn NIET nodig in GitHub Actions** — Pi draait in jouw Codespace, niet in CI.
+### Accounts aanmaken
+- [ ] Supabase: `jouwapp-dev` + `jouwapp-prod`
+- [ ] PostHog: 1 project
+- [ ] Vercel: 1 project gekoppeld aan GitHub repo
+- [ ] GitHub repo: secrets instellen (zie hieronder)
 
 ### Vercel Environment Variables
 
@@ -216,80 +218,85 @@ Ga naar **Settings → Secrets and variables → Actions**:
 |-----------|-------------|----------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | dev URL | prod URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | dev key | prod key |
-| `SUPABASE_URL_PROD` | prod URL (referentie) | prod URL |
-| `SUPABASE_ANON_KEY_PROD` | prod key (referentie) | prod key |
+| `SUPABASE_URL_PROD` | prod URL | prod URL |
+| `SUPABASE_ANON_KEY_PROD` | prod key | prod key |
 | `NEXT_PUBLIC_POSTHOG_KEY` | zelfde | zelfde |
 
----
+### GitHub Secrets
 
-## Supabase Projecten Opzetten
+Ga naar **Settings → Secrets and variables → Actions**:
 
-### 1. Dev project (jouwapp-dev)
-```bash
-# In Supabase dashboard:
-# - New Project → naam: jouwapp-dev
-# - Settings → API → kopieer Project URL + anon key
-# - Plak in Vercel Preview environment variables
-```
+| Secret | Waarde |
+|--------|--------|
+| `SUPABASE_URL_PROD` | Prod Supabase URL |
+| `SUPABASE_ANON_KEY_PROD` | Prod anon key |
+| `SLACK_WEBHOOK_URL` | *(optioneel)* |
+| `DISCORD_WEBHOOK_URL` | *(optioneel)* |
 
-### 2. Prod project (jouwapp-prod)
-```bash
-# - New Project → naam: jouwapp-prod
-# - Kopieer URL + key
-# - Plak in Vercel Production environment variables + GitHub Secrets
-```
-
-### 3. Schema synchronisatie
-```bash
-# Lokaal (in Codespace), met Supabase CLI:
-supabase login
-supabase link --project-ref <dev-ref>
-supabase db dump -f schema.sql
-
-supabase link --project-ref <prod-ref>
-supabase db reset
-supabase db push
-```
+> AI API keys zijn **niet** nodig in GitHub Actions — Pi draait in jouw Codespace.
 
 ---
 
-## PostHog Setup
+## Matt Pocock Skills — Welke wanneer?
 
-1. Maak één project aan op [posthog.com](https://posthog.com)
-2. Kopieer project API key naar **alle** Vercel environments (zelfde key)
-3. Events worden automatisch getagd met `environment` via `src/lib/config.ts`
-4. Filter in PostHog:
-   - Dev events: `environment = "development"`
-   - Preview events: `environment = "preview"`
-   - Prod events: `environment = "production"`
+| Skill | Wanneer | Hoe te activeren |
+|-------|---------|-----------------|
+| **`implement`** | **Standaard** voor elke feature implementatie | `/skill:implement` binnen Pi sessie |
+| **`tdd`** | Als de feature complexe business logica heeft | `/skill:tdd` → schrijf tests eerst |
+| **`code-review`** | Na implementatie, voor je PR maakt | `/skill:code-review` → review eigen output |
+| **`to-spec`** | Als acceptance criteria vaag zijn | `/skill:to-spec` → break down naar specs |
+| **`handoff`** | Als je werk overdraagt aan een ander | `/skill:handoff` |
+| **`ask-matt`** | Als je vragen hebt over de werkwijze | `/skill:ask-matt` |
+
+**Tip:** De `/implement` command van de factory-helper extension laadt automatisch het juiste context bestand en suggereert de juiste Matt skill.
 
 ---
 
 ## Troubleshooting
 
 ### "Geen factory context gevonden"
-- Check of `.pi-factory/` bestaat en `.md` files bevat
-- Zorg dat je op de juiste branch zit (`git branch -a`)
-- Run `/reload` in Pi om de factory-helper extensie te herladen
+- Check of `.pi-factory/*.md` bestanden bestaan
+- `git branch -a` → zit je op de juiste `pi-factory/*` branch?
+- `/reload` in Pi om de factory-helper extensie te herladen
 
-### "Pi commit faalt"
-- Zorg dat `git config user.name` en `user.email` zijn gezet in Codespace
-- De `/commit` command doet dit automatisch als het een Pi-factory commit is
+### "Matt's skills werken niet"
+- Check installatie: `ls ~/.pi/agent/skills/` of waar je ze hebt geïnstalleerd
+- De skills zijn prompt templates — ze moeten beschikbaar zijn als `/skill:<naam>`
+- Als ze niet werken, gebruik het project-local `.pi/skills/factory-implement.md`
+
+### Pi commit faalt
+- `/commit` zet automatisch `user.name` en `user.email`
+- Check `git status` voor conflicts
 
 ### Vercel preview deployt niet
-- Check of de branch een PR heeft (Vercel deployt branches zonder PR soms niet)
-- Check Vercel Dashboard → Deployments voor errors
+- PR moet bestaan (Vercel deployt soms niet zonder PR)
+- Check Vercel Dashboard → Deployments
 
 ---
 
-## Free Tier Limieten (realistisch)
+## Free Tier Limieten
 
-| Service | Free Tier | Eerste limiet die je raakt |
-|---------|-----------|---------------------------|
+| Service | Free Tier | Eerste limiet |
+|---------|-----------|---------------|
 | **GitHub Codespaces** | 120 uur/maand (Pro), 60 uur (Free) | Uren per maand |
 | **Vercel** | Hobby: unlimited projects, 100GB bandwidth | 60s function timeout |
-| **Supabase** | 500MB per project, 2GB storage | 500MB DB per project |
+| **Supabase** | 500MB per project | 500MB DB |
 | **PostHog** | 1M events/maand | 1M events |
-| **GitHub Actions** | 2,000 min/maand (private), unlimited (public) | n.v.t. voor deze workflow |
+| **Matt Pocock skills** | Gratis (open source) | — |
 
-Codespaces is de enige kostenpost hier. Voor intensief gebruik: $0.18/uur (2-core) of $0.36/uur (4-core). Een implementatie-sessie van 30 minuten = ~$0.10.
+Een implementatie-sessie van 30 minuten ≈ $0.10 (Codespaces 2-core).
+
+---
+
+## Bestandsoverzicht
+
+| File | Doel |
+|------|------|
+| `.github/workflows/pi-factory.yml` | Genereert context + post instructie |
+| `.github/workflows/pr-testplan.yml` | Post test checklist op factory PRs |
+| `.github/ISSUE_TEMPLATE/pi-story.yml` | Issue template met AC + stack checklist |
+| `.pi/extensions/factory-helper.ts` | Pi commands: /factory, /implement, /commit, /done, /review |
+| `.pi/skills/factory-implement.md` | Project-local implementatie protocol (Matt + stack) |
+| `.pi/skills/factory-review.md` | Project-local review protocol (Matt + stack) |
+| `.pi-factory/*.md` | Gegenereerde context per issue |
+| `src/lib/config.ts` | Environment switching (o/p) |
