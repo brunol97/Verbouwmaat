@@ -1,0 +1,53 @@
+name: 📬 Deploy Notificatie
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  notify:
+    if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch latest commits
+        run: git log -3 --oneline
+
+      - name: Slack / Discord Notificatie (optioneel)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"🚀 Deploy naar productie! Vercel build loopt... \" }" \
+              $SLACK_WEBHOOK_URL
+          fi
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"content\":\"🚀 Deploy naar productie! Check Vercel dashboard.\"}" \
+              $DISCORD_WEBHOOK_URL
+          fi
+
+      - name: Post Deploy Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `
+            ## 🚀 Productie Deploy
+
+            - **Commit:** ${{ github.sha }}
+            - **Branch:** ${{ github.ref_name }}
+            - **Vercel URL:** [Dashboard](https://vercel.com/dashboard)
+
+            ### Post-deploy checks
+            - [ ] Smoke test op productie URL
+            - [ ] PostHog events komen binnen
+            - [ ] Supabase connectie OK
+            `;
+            core.summary.addRaw(summary).write();

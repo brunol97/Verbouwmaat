@@ -1,0 +1,212 @@
+name: 🏭 Pi Software Factory
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "GitHub Issue nummer"
+        required: true
+        type: string
+
+concurrency:
+  group: pi-factory-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  cancel-in-progress: true
+
+jobs:
+  pi-implement:
+    if: github.event.label.name == 'pi-implement' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npx tsc --noEmit || true
+
+      - name: Install Pi
+        run: npm install -g @earendil-works/pi-coding-agent
+        # NOTE: Pi vereist een API key. Deze moet als secret in GitHub staan.
+
+      - name: Fetch Issue Details
+        id: issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = ${{ github.event.issue.number || github.event.inputs.issue_number }};
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+            });
+            core.setOutput("title", issue.title);
+            core.setOutput("body", issue.body || "");
+            core.setOutput("number", issue.number);
+            return issue;
+
+      - name: Create Feature Branch
+        run: |
+          git config user.name "pi-factory[bot]"
+          git config user.email "pi-factory@users.noreply.github.com"
+          BRANCH="pi-factory/${{ steps.issue.outputs.number }}-$(echo '${{ steps.issue.outputs.title }}' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-')"
+          BRANCH=$(echo $BRANCH | cut -c1-60)
+          git checkout -b $BRANCH
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+
+      - name: Generate Pi Context
+        run: |
+          cat > .pi-context.md << 'EOF'
+          # Software Factory Context
+
+          ## Tech Stack
+          - Next.js 15 App Router (React Server Components)
+          - TypeScript (strict)
+          - Tailwind CSS
+          - Supabase (PostgreSQL + Auth + Storage)
+          - PostHog (analytics)
+          - Vercel (deployment)
+
+          ## Architectuur Principes
+          1. Server Components als default — client components alleen voor interactiviteit
+          2. PostHog events tracken op elke gebruikersactie
+          3. Supabase RLS policies verplicht voor elke tabel
+          4. Error boundaries + loading states
+          5. Geen `any` types — strict TypeScript
+          6. Bestanden in src/app/ voor routes, src/components/ voor UI, src/lib/ voor utilities
+
+          ## Conventies
+          - Gebruik `async/await` in Server Components
+          - Gebruik `use server` voor Server Actions
+          - PostHog client in `src/lib/posthog/client.ts`
+          - PostHog server in `src/lib/posthog/server.ts`
+          - Supabase client in `src/lib/supabase/client.ts`
+          - Supabase server in `src/lib/supabase/server.ts`
+
+          ## Database
+          - Supabase project: gebruik PostgreSQL met pgvector voor toekomstige RAG features
+          - Elke nieuwe tabel moet RLS hebben
+          - Migrations via Supabase CLI (lokaal: `supabase db diff`)
+
+          ## Testing Checklist (voor de PR beschrijving)
+          - [ ] Dev build (`npm run build`) slaagt zonder errors
+          - [ ] TypeScript (`npx tsc --noEmit`) slaagt
+          - [ ] PostHog event zichtbaar in Live Events
+          - [ ] Authenticatie flow werkt (indien van toepassing)
+          - [ ] Mobile responsive (Tailwind breakpoints checken)
+          EOF
+
+      - name: Run Pi Implementation
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Configureer Pi voor print/json mode (non-interactief)
+        run: |
+          echo "⚙️ Pi would run here with the issue context."
+          echo "Issue: ${{ steps.issue.outputs.title }}"
+          echo "Body: ${{ steps.issue.outputs.body }}"
+          # Command pattern (vereist dat Pi in non-TUI mode kan draaien):
+          # pi -p --system-prompt .pi-context.md "Implement: ${{ steps.issue.outputs.title }}\n\n${{ steps.issue.outputs.body }}"
+          # ^ Dit is een placeholder — Pi in CI vereist configuratie van de Pi CLI in headless mode
+
+      - name: Type Check & Build
+        run: |
+          npx tsc --noEmit || true
+          npm run build || true
+
+      - name: Generate Test Document
+        run: |
+          cat > TESTPLAN.md << 'EOF'
+          # Testplan — ${{ steps.issue.outputs.title }}
+
+          ## Te testen
+          1. Pull de preview deploy URL uit de Vercel comment hieronder
+          2. Test de happy flow volgens acceptance criteria
+          3. Check PostHog Live Events voor tracking
+          4. Check mobiele weergave (Chrome DevTools → responsive)
+          5. Check error states (indien van toepassing)
+
+          ## Wat te verwachten
+          - Preview URL is actief na build (~2 min)
+          - PostHog events komen binnen in het dev project
+
+          ## Goedkeuring
+          - [ ] Alle acceptance criteria passeren
+          - [ ] PostHog events zijn zichtbaar
+          - [ ] Geen console errors in browser
+          - [ ] Merge naar main geeft groene Vercel build
+          EOF
+
+      - name: Commit & Push
+        run: |
+          git add -A
+          git commit -m "🏭 [PI-${{ steps.issue.outputs.number }}] ${{ steps.issue.outputs.title }}" || echo "No changes"
+          git push origin $BRANCH || echo "Push failed"
+
+      - name: Create Pull Request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const testplan = fs.readFileSync('TESTPLAN.md', 'utf8');
+            const body = `## 🤖 Pi Software Factory — Issue #${{ steps.issue.outputs.number }}
+
+            **Titel:** ${{ steps.issue.outputs.title }}
+
+            ---
+
+            ${testplan}
+
+            ---
+
+            *Dit PR is automatisch gegenereerd door de Pi Software Factory workflow.*
+            *Preview deploy verschijnt automatisch door Vercel.*
+            `;
+
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🏭 ${{ steps.issue.outputs.title }}`,
+              head: process.env.BRANCH,
+              base: 'main',
+              body: body,
+            });
+
+            // Labels toevoegen
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['pi-factory', 'needs-review'],
+            });
+
+            core.setOutput("pr_url", pr.html_url);
+            core.setOutput("pr_number", pr.number);
+
+      - name: Comment on Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue.outputs.number }},
+              body: `🏭 **Pi Factory heeft een PR gemaakt:** ${{ steps.pr.outputs.pr_url }}\n\nPreview deploy verschijnt automatisch in de PR comments via Vercel.`,
+            });

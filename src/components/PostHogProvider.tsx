@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 import { getPostHogClient } from "@/lib/posthog/client";
+import { getPostHogProperties } from "@/lib/config";
 
 function PostHogPageView() {
   const pathname = usePathname();
@@ -14,7 +15,11 @@ function PostHogPageView() {
         window.origin +
         pathname +
         (searchParams.toString() ? "?" + searchParams.toString() : "");
-      getPostHogClient().capture("$pageview", { $current_url: url });
+
+      getPostHogClient().capture("$pageview", {
+        $current_url: url,
+        ...getPostHogProperties(),
+      });
     }
   }, [pathname, searchParams]);
 

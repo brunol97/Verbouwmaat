@@ -1,0 +1,50 @@
+name: 🏭 Pi User Story
+description: Een feature die Pi automatisch moet implementeren binnen de tech stack.
+title: "[PI] "
+labels: ["pi-implement", "todo"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: Wat moet er gebeuren? Beschrijf het vanuit de gebruiker.
+      placeholder: |
+        Als gebruiker wil ik...
+        Zodat ik...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Wanneer is dit "done"? Concrete, testbare criteria.
+      placeholder: |
+        - [ ] Criteria 1
+        - [ ] Criteria 2
+        - [ ] PostHog event wordt getracked
+        - [ ] Error state wordt afgehandeld
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Extra Context
+      description: Relevante bestanden, design, API docs, etc.
+      placeholder: |
+        - Zie ook: src/app/...
+        - Design: [Figma link]
+        - API: /api/v1/...
+
+  - type: checkboxes
+    id: stack
+    attributes:
+      label: Tech Stack Checklist
+      options:
+        - label: Gebruik Next.js App Router (Server Components waar mogelijk)
+        - label: Client-side state alleen als nodig (useState, useEffect minimaliseren)
+        - label: PostHog tracking toegevoegd (client én server)
+        - label: Supabase RLS policies gecheckt / aangepast
+        - label: TypeScript strict mode compatibel
+        - label: Tailwind voor styling (geen inline styles)
