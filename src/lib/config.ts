@@ -33,6 +33,7 @@ export const ENV = {
   posthogKey: process.env.NEXT_PUBLIC_POSTHOG_KEY!,
   posthogHost:
     process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
+  posthogProjectId: process.env.POSTHOG_PROJECT_ID,
 };
 
 /**
