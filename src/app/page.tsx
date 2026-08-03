@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPostHogServer } from "@/lib/posthog/server";
 import { ENV, getPostHogProperties } from "@/lib/config";
+import { signOut } from "./actions";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -24,9 +25,27 @@ export default async function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full space-y-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">
-          AI SaaS Starter
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Verbouwmaat
+          </h1>
+          {user && (
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Uitloggen
+              </button>
+            </form>
+          )}
+        </div>
+
+        {user && (
+          <p className="text-sm text-gray-600">
+            Ingelogd als <strong>{user.email}</strong>
+          </p>
+        )}
 
         <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm">
           <span
@@ -45,7 +64,7 @@ export default async function Home() {
         </div>
 
         <p className="text-lg text-gray-600">
-          Hello world met <strong>Supabase</strong>, <strong>Vercel</strong>, en <strong>PostHog</strong>.
+          AI SaaS met <strong>Supabase</strong>, <strong>Vercel</strong>, en <strong>PostHog</strong>.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
