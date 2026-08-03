@@ -1,116 +1,248 @@
 # 🏭 Pi Software Factory
 
+> **Codespaces-native.** Pi draait in jouw Codespace, GitHub Actions doet alleen het papierwerk.
+
 ## Concept
-1. Je maakt een GitHub Issue aan met het `pi-implement` label
-2. De GitHub Action `pi-factory.yml` triggered automatisch
-3. De Action maakt een feature branch + PR scaffold
-4. Een Pi context prompt wordt gegenereerd op basis van de issue
-5. Preview deploy wordt automatisch aangemaakt door Vercel
-6. Notificatie wordt gestuurd met testinstructies
+
+1. **Jij maakt een GitHub Issue** aan met het `pi-implement` label
+2. **GitHub Action** genereert een context bestand (`.pi-factory/<nummer>.md`) en post instructies
+3. **Jij draait Pi** in je Codespace met dat context bestand
+4. **Pi implementeert** de feature binnen de tech stack
+5. **Jij commit + push** (of gebruik `/commit` / `/done` commands)
+6. **Vercel preview** deployt automatisch de branch
+7. **Pull Request** → review → merge → productie deploy
+
+## Diagram
+
+```
+Jij maakt Issue (template + label: pi-implement)
+        │
+        ▼
+GitHub Action: pi-factory.yml
+   ├─ Genereert .pi-factory/123.md
+   ├─ Maakt feature branch
+   ├─ Commit + push context
+   └─ Post comment op issue met instructie
+        │
+        ▼
+Jij opent Codespace (of lokaal)
+   ├─ Pi extension "factory-helper" detecteert context
+   ├─ Notificatie: "🏭 Factory context gevonden"
+   └─ Run: pi --system-prompt .pi-factory/123.md
+        │
+        ▼
+Pi implementeert feature
+   ├─ Leest user story + acceptance criteria
+   ├─ Codeert binnen Next.js/Supabase/PostHog stack
+   ├─ Volgt architectuur principes
+   └─ Gebruikt bash/write/edit tools
+        │
+        ▼
+Jij runt /commit of /done in Pi
+   ├─ /commit → git add -A → commit → push
+   ├─ /done   → commit + TESTPLAN.md + push
+   └─ Of handmatig: git add -A && git commit -m "..." && git push
+        │
+        ▼
+Vercel Preview Deploy (o)
+   └─ URL verschijnt automatisch in PR
+        │
+        ▼
+Pull Request → Review → Merge naar main
+        │
+        ▼
+Vercel Productie Deploy (p)
+   └─ Notificatie via Slack/Discord (optioneel)
+```
+
+## Waarom Codespaces?
+
+| Aspect | GitHub Actions CI | Codespace (huidig) |
+|--------|-------------------|--------------------|
+| Pi draait in | Container zonder TUI | Jouw ontwikkelomgeving |
+| Tools beschikbaar | Beperkt | Alle tools (bash, write, edit, read) |
+| Interactie | Batch / headless | Interactief, iteratief |
+| Iteraties | 1 run = 1 kans | Jij kan sturen, corrigeren |
+| Feedback loop | Minuten | Seconden |
+| Kwaliteit | Gemiddeld | Hoog (jij bent erbij) |
 
 ## Hoe gebruik je het
 
-### 1. Issue aanmaken
-- Klik "New Issue" → kies "Pi User Story"
-- Vul User Story, Acceptance Criteria en extra context in
-- Label `pi-implement` wordt automatisch toegevoegd
+### 1. Een feature aanvragen
 
-### 2. Pi laat het implementeren
-Er zijn twee realistische modi:
+- Ga naar **Issues → New Issue → Pi User Story**
+- Vul de template in: User Story, Acceptance Criteria, extra context
+- Label `pi-implement` staat al standaard aan → triggerd de factory
 
-#### Modus A: Pi in CI (autonoom — experimenteel)
-De workflow draait Pi in een headless container met de issue als prompt. Pi gebruikt `write`, `edit`, en `bash` tools om code te wijzigen. Dit vereist:
-- API keys als GitHub Secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
-- Pi geïnstalleerd in de runner (`npm i -g @earendil-works/pi-coding-agent`)
-- Non-interactieve mode (`--print` of `--json`)
+### 2. Wacht op context (30 seconden)
 
-**Op dit moment is Pi primair ontworpen voor interactief gebruik.** Volledig autonome CI-runs zijn mogelijk maar vereisen tuning.
+De Action maakt:
+- Een feature branch: `pi-factory/123-titel-van-issue`
+- Een context bestand: `.pi-factory/123.md`
+- Een comment op je issue met instructies
 
-#### Modus B: Pi context genereren (aanbevolen)
-De workflow:
-1. Genereert `.pi-factory-context.md` met issue + stack conventies
-2. Maakt feature branch en lege PR
-3. Post comment op issue: "Draai Pi met dit context bestand"
-4. Jij draait lokaal: `pi -e .pi/context.md --system-prompt .pi-factory-context.md`
-5. Pi commit en pusht naar de branch
-6. PR wordt automatisch geüpdatet
+### 3. Open Codespace en start Pi
 
-### 3. Review & Merge
-- Vercel preview URL is zichtbaar in de PR
-- Test volgens het automatisch gegenereerde testplan
-- PostHog events checken in dev project
-- Merge naar main → productie deploy via Vercel
+In je Codespace terminal:
 
-## Environments (o = preview, p = productie)
+```bash
+# Zorg dat je op de juiste branch zit
+git fetch
+git checkout pi-factory/123-titel-van-issue
 
-### Vercel
+# Start Pi met context
+pi --system-prompt .pi-factory/123.md
+```
+
+Of, als je al in een Pi sessie zit:
+```
+/reload
+# Pi laadt automatisch de project-local factory-helper extension
+# Die toont: "🏭 Factory context gevonden: #123"
+# Prompt met: implementeer issue 123
+```
+
+### 4. Pi implementeert
+
+Pi krijgt nu:
+- De volledige user story en acceptance criteria
+- Strict tech stack regels (Next.js, Supabase, PostHog)
+- Architectuur principes (Server Components, RLS, tracking)
+- File conventies en environment awareness
+- PostHog en Supabase checklists
+
+Pi gebruikt `write`, `edit`, `bash` om de feature te bouwen.
+
+### 5. Commit en push via Pi commands
+
+Binnen je Pi sessie:
+
+```
+/done
+```
+
+Dit doet automatisch:
+- `git add -A`
+- `git commit -m "🏭 [PI-123] Implementatie + TESTPLAN"`
+- Genereert `TESTPLAN.md`
+- `git push origin pi-factory/123-titel-van-issue`
+
+Of handmatig:
+```bash
+git add -A
+git commit -m "🏭 [PI-123] Titel van issue"
+git push
+```
+
+### 6. Pull Request maken
+
+Ga naar GitHub en maak een PR van `pi-factory/123-...` → `main`.
+
+- Vercel deployt automatisch een preview
+- De `pr-testplan.yml` Action post een test checklist comment
+- Review, test op preview URL, merge
+
+---
+
+## Environments: o vs p
+
+### Vercel (gratis)
+
 | Omgeving | Branch | URL | Env vars |
 |----------|--------|-----|----------|
 | **Preview (o)** | PR / niet-main | `*.vercel.app` (uniek per deploy) | Preview variables |
 | **Productie (p)** | `main` | Custom domain of `*.vercel.app` | Production variables |
 
-### Supabase
+**Instellen in Vercel Dashboard:**
+- Project → Settings → Environment Variables
+- Zet dev Supabase keys onder **Preview**
+- Zet prod Supabase keys onder **Production**
+
+### Supabase (gratis)
+
 | Omgeving | Project | Hoe aanmaken |
 |----------|---------|--------------|
-| **Preview (o)** | `jouwapp-dev` | Apart project in Supabase dashboard |
-| **Productie (p)** | `jouwapp-prod` | Apart project in Supabase dashboard |
+| **Preview (o)** | `jouwapp-dev` | Nieuw project in Supabase dashboard |
+| **Productie (p)** | `jouwapp-prod` | Nieuw project in Supabase dashboard |
 
-⚠️ **Supabase free tier:** 500MB per project. Twee projecten = 2 × 500MB = 1GB totaal. Gratis.
+⚠️ **Free tier:** 500MB per project. Twee projecten = 2 × 500MB = 1GB totaal. Beide gratis.
 
-### PostHog
+De app switcht automatisch via `src/lib/config.ts` op basis van `VERCEL_ENV`.
+
+### PostHog (gratis)
+
 | Omgeving | Aanpak |
 |----------|--------|
 | **Alles** | Één project, `environment` property in events |
 
-Je kan filteren op `environment: preview` vs `environment: production` in PostHog dashboards.
+Filter in PostHog dashboards op:
+- `properties.environment = "preview"` (o)
+- `properties.environment = "production"` (p)
 
-## Secrets die je moet configureren in GitHub
+---
+
+## Factory Commands (Pi extensie)
+
+De project-local extensie `.pi/extensions/factory-helper.ts` registreert:
+
+| Command | Wat het doet |
+|---------|-------------|
+| `/factory` | Toont alle klaarstaande `.pi-factory/*.md` context bestanden. Laadt geselecteerde in editor. |
+| `/commit` | `git add -A` → commit met message → push naar huidige branch. Handig na Pi implementatie. |
+| `/done` | Commit + genereert `TESTPLAN.md` + push. Klaar voor PR. |
+
+De extensie laadt automatisch bij session start en toont een widget als er factory contexts klaar staan.
+
+---
+
+## Secrets & Configuratie
+
+### GitHub Secrets (optioneel — alleen voor deploy notificaties)
 
 Ga naar **Settings → Secrets and variables → Actions**:
 
 | Secret | Waarde | Voor |
 |--------|--------|------|
-| `SUPABASE_URL_PROD` | Productie Supabase URL | Prod database |
-| `SUPABASE_ANON_KEY_PROD` | Productie anon key | Prod database |
-| `OPENAI_API_KEY` | OpenAI API key | Pi CI runs |
-| `ANTHROPIC_API_KEY` | Anthropic API key | Pi CI runs |
+| `SUPABASE_URL_PROD` | Prod Supabase URL | Productie builds |
+| `SUPABASE_ANON_KEY_PROD` | Prod anon key | Productie builds |
 | `SLACK_WEBHOOK_URL` | Slack incoming webhook | Deploy notificaties |
 | `DISCORD_WEBHOOK_URL` | Discord webhook URL | Deploy notificaties |
 
-## Configuratie in Vercel
+> **AI API keys zijn NIET nodig in GitHub Actions** — Pi draait in jouw Codespace, niet in CI.
 
-Ga naar **Project Settings → Environment Variables**:
+### Vercel Environment Variables
 
-### Production
-- `NEXT_PUBLIC_SUPABASE_URL` → prod URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` → prod key
-- `SUPABASE_URL_PROD` → prod URL
-- `SUPABASE_ANON_KEY_PROD` → prod key
+| Variabele | Preview (o) | Production (p) |
+|-----------|-------------|----------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | dev URL | prod URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | dev key | prod key |
+| `SUPABASE_URL_PROD` | prod URL (referentie) | prod URL |
+| `SUPABASE_ANON_KEY_PROD` | prod key (referentie) | prod key |
+| `NEXT_PUBLIC_POSTHOG_KEY` | zelfde | zelfde |
 
-### Preview
-- `NEXT_PUBLIC_SUPABASE_URL` → dev URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` → dev key
-- `SUPABASE_URL_PROD` → prod URL (voor referentie)
-- `SUPABASE_ANON_KEY_PROD` → prod key (voor referentie)
+---
 
-## Supabase projecten opzetten
+## Supabase Projecten Opzetten
 
-### 1. Dev project aanmaken
+### 1. Dev project (jouwapp-dev)
 ```bash
-# Maak project aan in Supabase dashboard (gratis)
-# Kies een naam: jouwapp-dev
-# Kopieer URL en anon key naar Vercel Preview env vars
+# In Supabase dashboard:
+# - New Project → naam: jouwapp-dev
+# - Settings → API → kopieer Project URL + anon key
+# - Plak in Vercel Preview environment variables
 ```
 
-### 2. Prod project aanmaken
+### 2. Prod project (jouwapp-prod)
 ```bash
-# Maak tweede project aan: jouwapp-prod
-# Kopieer URL en anon key naar Vercel Production env vars + GitHub Secrets
+# - New Project → naam: jouwapp-prod
+# - Kopieer URL + key
+# - Plak in Vercel Production environment variables + GitHub Secrets
 ```
 
-### 3. Database sync (handmatig)
+### 3. Schema synchronisatie
 ```bash
-# Lokaal, met Supabase CLI:
+# Lokaal (in Codespace), met Supabase CLI:
+supabase login
 supabase link --project-ref <dev-ref>
 supabase db dump -f schema.sql
 
@@ -119,19 +251,45 @@ supabase db reset
 supabase db push
 ```
 
-## PostHog setup
+---
+
+## PostHog Setup
 
 1. Maak één project aan op [posthog.com](https://posthog.com)
-2. Kopieer project API key naar Vercel (alle environments)
-3. Events worden automatisch getagd met `environment` property via `src/lib/config.ts`
+2. Kopieer project API key naar **alle** Vercel environments (zelfde key)
+3. Events worden automatisch getagd met `environment` via `src/lib/config.ts`
+4. Filter in PostHog:
+   - Dev events: `environment = "development"`
+   - Preview events: `environment = "preview"`
+   - Prod events: `environment = "production"`
 
-## Testplan workflow
+---
 
-Elke Pi-factory PR bevat een `TESTPLAN.md` met:
-1. Preview deploy URL
-2. Acceptance criteria checklist
-3. PostHog event verificatie
-4. Mobiele responsive check
-5. Error state check
+## Troubleshooting
 
-Na merge wordt automatisch een deploy notificatie gestuurd.
+### "Geen factory context gevonden"
+- Check of `.pi-factory/` bestaat en `.md` files bevat
+- Zorg dat je op de juiste branch zit (`git branch -a`)
+- Run `/reload` in Pi om de factory-helper extensie te herladen
+
+### "Pi commit faalt"
+- Zorg dat `git config user.name` en `user.email` zijn gezet in Codespace
+- De `/commit` command doet dit automatisch als het een Pi-factory commit is
+
+### Vercel preview deployt niet
+- Check of de branch een PR heeft (Vercel deployt branches zonder PR soms niet)
+- Check Vercel Dashboard → Deployments voor errors
+
+---
+
+## Free Tier Limieten (realistisch)
+
+| Service | Free Tier | Eerste limiet die je raakt |
+|---------|-----------|---------------------------|
+| **GitHub Codespaces** | 120 uur/maand (Pro), 60 uur (Free) | Uren per maand |
+| **Vercel** | Hobby: unlimited projects, 100GB bandwidth | 60s function timeout |
+| **Supabase** | 500MB per project, 2GB storage | 500MB DB per project |
+| **PostHog** | 1M events/maand | 1M events |
+| **GitHub Actions** | 2,000 min/maand (private), unlimited (public) | n.v.t. voor deze workflow |
+
+Codespaces is de enige kostenpost hier. Voor intensief gebruik: $0.18/uur (2-core) of $0.36/uur (4-core). Een implementatie-sessie van 30 minuten = ~$0.10.
