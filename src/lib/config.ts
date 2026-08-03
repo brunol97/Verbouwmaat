@@ -24,10 +24,11 @@ export const ENV = {
       ? process.env.SUPABASE_URL_PROD!
       : process.env.NEXT_PUBLIC_SUPABASE_URL!,
 
-  supabaseAnonKey:
+  // Supabase keys: nieuw publishable key format (sb_publishable_*) of legacy anon key
+  supabaseKey:
     process.env.VERCEL_ENV === "production"
-      ? process.env.SUPABASE_ANON_KEY_PROD!
-      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ? (process.env.SUPABASE_PUBLISHABLE_KEY_PROD ?? process.env.SUPABASE_ANON_KEY_PROD)!
+      : (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!,
 
   // PostHog — same project, different host if needed
   posthogKey: process.env.NEXT_PUBLIC_POSTHOG_KEY!,
