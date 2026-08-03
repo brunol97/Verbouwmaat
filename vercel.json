@@ -1,13 +1,4 @@
 {
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "@supabase_publishable_key",
-    "SUPABASE_URL_PROD": "@supabase_url_prod",
-    "SUPABASE_PUBLISHABLE_KEY_PROD": "@supabase_publishable_key_prod",
-    "NEXT_PUBLIC_POSTHOG_KEY": "@posthog_key",
-    "NEXT_PUBLIC_POSTHOG_HOST": "@posthog_host",
-    "POSTHOG_PROJECT_ID": "@posthog_project_id"
-  }
+  "regions": ["iad1"]
 }
