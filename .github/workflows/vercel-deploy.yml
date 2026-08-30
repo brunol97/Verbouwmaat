@@ -1,0 +1,74 @@
+name: ▲ Vercel Deploy
+
+# Automatisch deployen per branch:
+#   dev  → Vercel preview deploy (development URL)
+#   main → Vercel production deploy
+#
+# Deze workflow is een ALTERNATIEF voor de Vercel Git integration.
+# Als Vercel al gekoppeld is aan GitHub (standaard), hoef je deze niet te gebruiken.
+# Gebruik deze workflow alleen als je expliciet via Vercel CLI wilt deployen.
+
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy omgeving"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "target=production" >> $GITHUB_OUTPUT
+          else
+            echo "target=preview" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull Environment
+        run: vercel pull --yes --environment=${{ steps.env.outputs.target }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }} ${{ steps.env.outputs.target == 'production' && '--prod' || '' }}
+
+      - name: Deploy
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} ${{ steps.env.outputs.target == 'production' && '--prod' || '' }}
+
+      - name: Post Deploy Summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const target = '${{ steps.env.outputs.target }}';
+            const status = '${{ job.status }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            core.summary.addRaw(`${emoji} Vercel deploy to ${target}`).write();

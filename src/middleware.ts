@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ENV } from "@/lib/config";
 
 // Routes die altijd toegankelijk zijn (geen auth nodig)
-const PUBLIC_ROUTES = ["/login", "/auth/callback"];
+const PUBLIC_ROUTES = ["/login", "/auth/callback", "/api/mcp"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({

@@ -3,8 +3,8 @@ import "./globals.css";
 import PostHogProvider from "@/components/PostHogProvider";
 
 export const metadata: Metadata = {
-  title: "AI SaaS Starter",
-  description: "Hello world with Supabase, Vercel, and PostHog",
+  title: "Verbouwmaat - AI Plattegrond Analyse",
+  description: "Upload plattegronden en laat AI ruimtes, oppervlaktes en werkzaamheden analyseren voor je renovatieproject.",
 };
 
 export default function RootLayout({

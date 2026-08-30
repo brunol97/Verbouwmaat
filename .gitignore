@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local data
+/input/
+supabase/.temp/
+supabase/.branches/
+.pi-factory/
+TESTPLAN.md

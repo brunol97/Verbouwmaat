@@ -1,0 +1,65 @@
+name: 🗄️ Supabase Migrations
+
+# Automatisch database migrations uitvoeren per branch:
+#   dev  → dev Supabase project (ekzshymcaxaeoegleoyo)
+#   main → prod Supabase project (yzcwmaihkxfubtqatynt)
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - "supabase/migrations/**"
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "supabase/migrations/**"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.base_ref }}" = "main" ]; then
+            echo "project_id=${{ secrets.SUPABASE_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "project_id=${{ secrets.SUPABASE_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Link Project
+        run: supabase link --project-ref ${{ steps.env.outputs.project_id }}
+
+      - name: Start Supabase Local (for validation)
+        run: supabase start --exclude auth,storage,realtime,inbucket,studio,edge-runtime,logflare,vector,pgbouncer
+
+      - name: Validate Migrations (dry-run)
+        run: supabase db reset
+
+      - name: Push Migrations
+        if: github.event_name == 'push'
+        run: supabase db push
+
+      - name: Post Status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const env = '${{ steps.env.outputs.environment }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            core.summary.addRaw(`${emoji} Supabase migrations pushed to ${env}`).write();

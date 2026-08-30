@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPostHogServer } from "@/lib/posthog/server";
 import { ENV, getPostHogProperties } from "@/lib/config";
 import { signOut } from "./actions";
+import Link from "next/link";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -64,8 +65,18 @@ export default async function Home() {
         </div>
 
         <p className="text-lg text-gray-600">
-          AI SaaS met <strong>Supabase</strong>, <strong>Vercel</strong>, en <strong>PostHog</strong>.
+          AI-gestuurde plattegrondanalyse voor je renovatieproject.
         </p>
+
+        <div className="flex justify-center">
+          <Link
+            href="/projecten"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-base font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            <span>🏠</span>
+            Naar projecten
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           <Card
@@ -87,7 +98,7 @@ export default async function Home() {
 
         <div className="pt-8 text-sm text-gray-500">
           <p>
-            Edit <code className="bg-gray-100 px-1 rounded">src/app/page.tsx</code> om te beginnen.
+            Upload plattegronden en laat AI de ruimtes, oppervlaktes en werkzaamheden analyseren.
           </p>
           <p className="mt-2">
             Maak een{" "}
