@@ -18,14 +18,17 @@ export default function LoginPage() {
     setError(null);
     setMessage(null);
 
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: redirectTo,
       },
     });
 
     if (error) {
+      console.error("[login] Magic link error:", error);
       setError(error.message);
     } else {
       setMessage("Check je e-mail! We hebben je een magische link gestuurd.");

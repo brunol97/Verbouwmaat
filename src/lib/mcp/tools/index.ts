@@ -7,6 +7,7 @@
 import { registry } from "../registry";
 import { userInfoTool } from "./user-info";
 import { projectTools } from "./projects";
+import { posthogTools } from "./posthog";
 
 // Registreer tools
 registry.register(userInfoTool);
@@ -15,4 +16,8 @@ for (const tool of projectTools) {
   registry.register(tool);
 }
 
-// TODO: importeer en registreer hier je eigen tools
+for (const tool of posthogTools) {
+  registry.register(tool);
+}
+
+console.log(`[MCP] ${registry.toDefinitions().length} tools geregistreerd`);

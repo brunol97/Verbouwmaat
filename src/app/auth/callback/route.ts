@@ -1,19 +1,42 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+/**
+ * Auth callback handler voor OAuth en Magic Link login.
+ *
+ * BELANGRIJK: Supabase Dashboard → Authentication → URL Configuration
+ * moet de Vercel URL(s) bevatten als redirect URL:
+ *   - https://verbouwmaat-xxx.vercel.app/auth/callback
+ *   - https://localhost:3000/auth/callback (voor lokaal)
+ */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/projecten";
+
+  const requestUrl = new URL(request.url);
+  const origin = requestUrl.origin;
+
+  console.log("[auth/callback] Received callback at:", request.url);
+  console.log("[auth/callback] Code present:", !!code);
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      console.error("[auth/callback] Exchange error:", error.message);
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`
+      );
+    }
+
+    if (data.session) {
+      console.log("[auth/callback] Session created for:", data.session.user.email);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Fallback naar login bij error
+  console.error("[auth/callback] No code provided or session creation failed");
   return NextResponse.redirect(`${origin}/login?error=auth-failed`);
 }
