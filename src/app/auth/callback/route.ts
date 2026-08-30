@@ -20,23 +20,30 @@ export async function GET(request: Request) {
   console.log("[auth/callback] Received callback at:", request.url);
   console.log("[auth/callback] Code present:", !!code);
 
-  if (code) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (error) {
-      console.error("[auth/callback] Exchange error:", error.message);
-      return NextResponse.redirect(
-        `${origin}/login?error=${encodeURIComponent(error.message)}`
-      );
-    }
-
-    if (data.session) {
-      console.log("[auth/callback] Session created for:", data.session.user.email);
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+  if (!code) {
+    console.error("[auth/callback] No code in URL — magic link may have expired or redirect URL mismatch");
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent("Geen auth code ontvangen. De link is mogelijk verlopen of de redirect URL staat niet goed in Supabase ingesteld.")}`
+    );
   }
 
-  console.error("[auth/callback] No code provided or session creation failed");
-  return NextResponse.redirect(`${origin}/login?error=auth-failed`);
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("[auth/callback] Exchange error:", error.message);
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(error.message)}`
+    );
+  }
+
+  if (data.session) {
+    console.log("[auth/callback] Session created for:", data.session.user.email);
+    return NextResponse.redirect(`${origin}${next}`);
+  }
+
+  console.error("[auth/callback] No session created after exchange");
+  return NextResponse.redirect(
+    `${origin}/login?error=${encodeURIComponent("Sessie kon niet worden aangemaakt. Probeer opnieuw in te loggen.")}`
+  );
 }

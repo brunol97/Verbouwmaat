@@ -1,7 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+function ErrorDisplay() {
+  if (typeof window === "undefined") return null;
+
+  const params = new URLSearchParams(window.location.search);
+  const error = params.get("error");
+
+  if (!error) return null;
+
+  return (
+    <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 mb-4">
+      <p className="font-medium">Login fout:</p>
+      <p>{decodeURIComponent(error)}</p>
+      <p className="text-xs mt-1 text-red-500">
+        Tip: Probeer inloggen met wachtwoord of maak een nieuw account aan.
+      </p>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"magic" | "password" | "signup" | "check">("magic");
@@ -106,6 +125,8 @@ export default function LoginPage() {
             Je verbouw-assistent — van plattegrond tot oplevering
           </p>
         </div>
+
+        <ErrorDisplay />
 
         {/* Google Login */}
         <button
