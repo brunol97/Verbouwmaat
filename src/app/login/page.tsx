@@ -8,25 +8,43 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Client aanmaken IN de try-catch zodat init errors gevangen worden
+      const supabase = createClient();
+      console.log("Supabase client created, attempting login...");
 
-    if (error) {
-      setError(error.message);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      console.log("Login response:", { data, error });
+
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!data.session) {
+        setError("Geen sessie aangemaakt — probeer opnieuw.");
+        setLoading(false);
+        return;
+      }
+
+      // Hard refresh zodat middleware de cookie ziet
+      window.location.replace("/");
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err?.message || "Er ging iets mis. Check de browser console (F12).");
       setLoading(false);
-      return;
     }
-
-    window.location.href = "/";
   };
 
   return (
