@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<"magic" | "password" | "check">("magic");
+  const [mode, setMode] = useState<"magic" | "password" | "signup" | "check">("magic");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,30 @@ export default function LoginPage() {
     }
 
     window.location.href = "/projecten";
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setMessage("Account aangemaakt! Je kunt nu direct inloggen.");
+    setMode("check");
+    setLoading(false);
   };
 
   const handleGoogleLogin = async () => {
@@ -236,13 +260,86 @@ export default function LoginPage() {
               {loading ? "Inloggen..." : "Inloggen"}
             </button>
 
+            <p className="text-center text-xs text-gray-500 space-y-1">
+              <button
+                type="button"
+                onClick={() => setMode("magic")}
+                className="text-blue-600 hover:underline block"
+              >
+                Liever een magische link?
+              </button>
+              <span className="text-gray-400">Nog geen account? </span>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className="text-blue-600 hover:underline"
+              >
+                Maak account aan
+              </button>
+            </p>
+          </form>
+        )}
+
+        {mode === "signup" && (
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div>
+              <label
+                htmlFor="email-signup"
+                className="block text-sm font-medium text-gray-700"
+              >
+                E-mailadres
+              </label>
+              <input
+                id="email-signup"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="jouw@email.nl"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password-signup"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Wachtwoord
+              </label>
+              <input
+                id="password-signup"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                placeholder="Minimaal 6 tekens"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            {error && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {loading ? "Bezig..." : "Account aanmaken"}
+            </button>
+
             <p className="text-center text-xs text-gray-500">
               <button
                 type="button"
                 onClick={() => setMode("magic")}
                 className="text-blue-600 hover:underline"
               >
-                Liever een magische link?
+                Terug naar login
               </button>
             </p>
           </form>
